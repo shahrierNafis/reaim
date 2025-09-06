@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2ulx2o0lct7t"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_3hr3o"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_3hr3o"]
+
+[node name="Target" type="Node3D"]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." groups=["target"]]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
+cast_shadow = 0
+mesh = SubResource("SphereMesh_3hr3o")
+skeleton = NodePath("../..")
+
+[node name="collider" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
+shape = SubResource("SphereShape3D_3hr3o")
