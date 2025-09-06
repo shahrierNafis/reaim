@@ -37,7 +37,7 @@ cast_shadow = 0
 mesh = SubResource("BoxMesh_7dm0k")
 skeleton = NodePath("")
 
-[node name="ProtoController" parent="." instance=ExtResource("2_0xm2m")]
+[node name="player" parent="." instance=ExtResource("2_0xm2m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0153064, 1, -0.0798287)
 
 [node name="ground" type="CSGMesh3D" parent="."]

@@ -181,7 +181,7 @@ func check_input_mappings():
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		shoot()
-
+signal target_hit
 func shoot():
 	## Check if the player is colliding with anything.
 	if _raycast.is_colliding():

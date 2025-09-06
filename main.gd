@@ -14,10 +14,11 @@ func _ready():
 	# Shuffle and pick random target positions
 	positions.shuffle()
 	spawn_targets()
-	connect("target_hit", onTargetHit)
+	$player.connect("target_hit", onTargetHit)
 
 func onTargetHit():
-	print("d")
+	var targets = get_tree().get_nodes_in_group("enemies")
+
 
 	# Collect all grid positions
 func initPositions():
