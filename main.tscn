@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://caaiai4nlltep"]
+[gd_scene load_steps=6 format=3 uid="uid://caaiai4nlltep"]
 
 [ext_resource type="Script" uid="uid://16u301gehmkn" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://bs72ogkvdd7d6" path="res://scenes/player/player.tscn" id="2_0xm2m"]
@@ -15,10 +15,6 @@ background_mode = 2
 sky = SubResource("Sky_h2yge")
 tonemap_mode = 2
 
-[sub_resource type="BoxMesh" id="BoxMesh_7dm0k"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_0xm2m"]
-
 [node name="Main" type="Node3D"]
 script = ExtResource("1_ig7tw")
 
@@ -30,28 +26,21 @@ directional_shadow_max_distance = 1.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1bvp3")
 
-[node name="wall" type="MeshInstance3D" parent="."]
-transform = Transform3D(16, 0, 0, 0, 4.5, 0, 0, 0, 0.125, 0, 2.175, 5)
-visible = false
-cast_shadow = 0
-mesh = SubResource("BoxMesh_7dm0k")
-skeleton = NodePath("")
-
 [node name="player" parent="." instance=ExtResource("2_0xm2m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0153064, 1, -0.0798287)
-
-[node name="ground" type="CSGMesh3D" parent="."]
-transform = Transform3D(-16, 0, 1.35896e-06, 0, 0.1, 0, -2.41593e-06, 0, -9, 0, 0, 0.5)
-visible = false
-cast_shadow = 0
-use_collision = true
-mesh = SubResource("BoxMesh_0xm2m")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="TimerLabel" type="Label" parent="CanvasLayer"]
-offset_right = 40.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -33.5
+offset_right = 33.5
 offset_bottom = 23.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
 
 [node name="StatusLabel" type="Label" parent="CanvasLayer"]
 anchors_preset = 1
@@ -60,6 +49,7 @@ anchor_right = 1.0
 offset_left = -40.0
 offset_bottom = 23.0
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 48
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer"]
 anchors_preset = 3
@@ -71,3 +61,4 @@ offset_left = -40.0
 offset_top = -23.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 48

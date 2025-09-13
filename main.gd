@@ -3,12 +3,12 @@ extends Node3D
 var target_scene: PackedScene = preload("res://scenes/target.tscn")
 var empty_target_scene: PackedScene = preload("res://scenes/empty_target.tscn")
 
-@export var wall_z: float = -5.0
-@export var target_count: int = 10
-@export var grid_rows: int = 2
-@export var grid_cols: int = 15
-@export var spacing: float = .3
-@export var apart: int = 3
+@export var radius: float = 5
+@export var angle_x: float = 90  # horizontal arc in degrees
+@export var angle_y: float = 45   # vertical arc in degrees
+@export var spacing: float = 0.3
+
+@export var target_count: int = 2
 @export var time: int = 5
 
 var positions: Array[Vector3] = []
@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 	if timer.is_stopped():
 		timer_label.text = ""
 	else:
-		timer_label.text = str(round(timer.time_left))
+		timer_label.text = str(int(round(timer.time_left)))
 
 func onTargetHit():
 	targets_destroyed += 1
@@ -55,27 +55,28 @@ func onTargetHit():
 	if targets.size() == 1:
 		# All targets destroyed -> success
 		print("All targets hit! Respawning...")
-		_calc_score(true)
+		_calc_score()
 		status_label.text = "Success!"
 		status_label.add_theme_color_override("font_color", Color.GREEN)
 		positions.shuffle()
 		spawn_targets()
+		timer.stop()
 		targets_destroyed = 0
 
 func _on_timeout():
 	# Timer ran out -> failure
 	print("Timeout! Failure.")
 	spawn_targets()
-	_calc_score(false)
+	_calc_score()
 	status_label.text = "Failure!"
 	status_label.add_theme_color_override("font_color", Color.RED)
 	targets_destroyed = 0
 
-func _calc_score(success: bool):
+func _calc_score():
 	if targets_destroyed == 0:
 		return
-	var base = (grid_cols * grid_rows * apart * targets_destroyed / spacing)
-	var exponent = float(targets_destroyed) / float(time)
+	var base = (angle_x * angle_y * targets_destroyed / spacing)
+	var exponent = float(targets_destroyed) / float(time-timer.time_left)
 	var score = pow(base, exponent)
 
 	total_score += score
@@ -100,14 +101,56 @@ func _load_score():
 func _update_score_label():
 	score_label.text = "Score: " + str(round(total_score))
 
-# Collect all grid positions
 func initPositions():
 	positions.clear()
-	for row in range(grid_rows):
-		for col in range(grid_cols):
-			var x = (col - (grid_cols - 1) / 2.0) * spacing * apart
-			var y = 2.5 + (row - (grid_rows - 1) / 2.0) * spacing * apart
-			positions.append(Vector3(x, y, wall_z))
+	
+	# Convert angles to radians
+	var angle_x_rad = deg_to_rad(angle_x)
+	var angle_y_rad = deg_to_rad(angle_y)
+	
+	# Calculate vertical angular step
+	var step_y = spacing / radius
+	var steps_y = int(angle_y_rad / step_y) + 1
+	
+	for iy in range(steps_y):
+		# Vertical angle: from -angle_y/2 to +angle_y/2
+		var phi = (iy / float(steps_y - 1) - 0.5) * angle_y_rad
+		
+		# Calculate horizontal step adjusted for this latitude
+		# At higher latitudes (near poles), cos(phi) gets smaller, 
+		# so we need fewer horizontal points to maintain spacing
+		var cos_phi = cos(phi)
+		
+		# Skip points too close to poles to avoid coordinate issues
+		if abs(cos_phi) < 0.05:
+			continue
+		
+		var step_x_adjusted = step_y / cos_phi  # adjust horizontal step for latitude
+		var steps_x = max(1, int(angle_x_rad / step_x_adjusted) + 1)
+		
+		# For 360° horizontal coverage, exclude the last point to avoid overlap
+		var actual_steps_x = steps_x
+		if abs(angle_x - 360.0) < 0.001:  # Check if it's essentially 360°
+			actual_steps_x = steps_x - 1
+		
+		for ix in range(actual_steps_x):
+			var theta: float
+			if actual_steps_x == 1:
+				# Single point on this latitude ring - place at center
+				theta = 0.0
+			elif abs(angle_x - 360.0) < 0.001:
+				# Full 360° circle: distribute evenly from 0 to 360° (excluding 360°)
+				theta = (ix / float(actual_steps_x)) * angle_x_rad - PI
+			else:
+				# Partial arc: from -angle_x/2 to +angle_x/2
+				theta = (ix / float(actual_steps_x - 1) - 0.5) * angle_x_rad
+			
+			# Spherical to Cartesian conversion
+			var x = radius * cos_phi * sin(theta)
+			var y = radius * sin(phi) + 1
+			var z = -radius * cos_phi * cos(theta)
+			
+			positions.append(Vector3(x, y, z))
 
 func spawn_targets():
 	clear_targets()
