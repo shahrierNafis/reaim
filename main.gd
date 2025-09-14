@@ -13,6 +13,7 @@ var empty_target_scene: PackedScene = preload("res://scenes/empty_target.tscn")
 
 var positions: Array[Vector3] = []
 var timer := Timer.new()
+var start_time: float = 0.0
 
 var targets_destroyed: int = 0
 var total_score: float = 0.0
@@ -28,6 +29,7 @@ func _ready():
 	initPositions()
 	positions.shuffle()
 	spawn_targets()
+
 
 	timer.wait_time = time
 	timer.one_shot = true
@@ -50,6 +52,8 @@ func onTargetHit():
 	if targets.size() == target_count:
 		status_label.text = ""
 		timer.start()
+		start_time = Time.get_ticks_msec() / 1000.0  # store start in seconds
+
 
 	if targets.size() == 1:
 		# All targets destroyed -> success
@@ -73,7 +77,8 @@ func _calc_score():
 	for i in range(target_positions.size() - 1):
 		base += target_positions[i].distance_to(target_positions[i + 1])
 		
-	var exponent = float(targets_destroyed) / float(time-timer.time_left)
+	var elapsed_time=float((Time.get_ticks_msec() / 1000.0) - start_time)
+	var exponent = float(targets_destroyed) / elapsed_time
 	var score = pow(base, exponent)
 
 	total_score += score
