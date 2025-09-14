@@ -31,7 +31,6 @@ func _ready():
 
 	timer.wait_time = time
 	timer.one_shot = true
-	timer.timeout.connect(_on_timeout)
 	add_child(timer)
 
 	$player.connect("target_hit", onTargetHit)
@@ -55,27 +54,25 @@ func onTargetHit():
 	if targets.size() == 1:
 		# All targets destroyed -> success
 		print("All targets hit! Respawning...")
-		_calc_score()
-		status_label.text = "Success!"
-		status_label.add_theme_color_override("font_color", Color.GREEN)
-		positions.shuffle()
+		status_label.text = _calc_score()
+		if (timer.time_left==0):
+				status_label.add_theme_color_override("font_color", Color.ORANGE)
+		else:		
+			status_label.add_theme_color_override("font_color", Color.GREEN)
+			positions.shuffle()
 		spawn_targets()
 		timer.stop()
 		targets_destroyed = 0
 
-func _on_timeout():
-	# Timer ran out -> failure
-	print("Timeout! Failure.")
-	spawn_targets()
-	_calc_score()
-	status_label.text = "Failure!"
-	status_label.add_theme_color_override("font_color", Color.RED)
-	targets_destroyed = 0
-
 func _calc_score():
 	if targets_destroyed == 0:
 		return
-	var base = (angle_x * angle_y * targets_destroyed / spacing)
+	var target_positions = positions.slice(0, target_count)
+	
+	var base = 0.0
+	for i in range(target_positions.size() - 1):
+		base += target_positions[i].distance_to(target_positions[i + 1])
+		
 	var exponent = float(targets_destroyed) / float(time-timer.time_left)
 	var score = pow(base, exponent)
 
@@ -84,6 +81,10 @@ func _calc_score():
 	_update_score_label()
 
 	print("Round Score:", score, " | Total Score:", total_score)
+	return "{0}^{1} = {2}".format([round_to_dec(base),round_to_dec(exponent),round_to_dec(score)])
+	
+func round_to_dec(num, digit=2):
+	return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
 func _save_score():
 	var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
@@ -99,7 +100,7 @@ func _load_score():
 			file.close()
 
 func _update_score_label():
-	score_label.text = "Score: " + str(round(total_score))
+	score_label.text = "Score: " + str(round_to_dec(total_score))
 
 func initPositions():
 	positions.clear()
